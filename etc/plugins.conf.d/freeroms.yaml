@@ -1,0 +1,22 @@
+site: "freeroms.com"
+proto: "https"
+directory: "/home/benjamin/roms"
+
+stages:
+  cookies:
+    url: "/"
+  platforms:
+    url: "/"
+  roms:
+    url: "/"
+  download:
+    url: "/"
+    referer: "https://www.freeroms.com/"
+
+platforms:
+  - name: "Neogeo Pocket"
+  #- name: "Atari Lynx"
+  #  directory: "/home/benjamin/roms/Atari Lynx"
+  #- name: "Playstation Portable"
+  #  directory: "/home/benjamin/roms/Sony Playstation Portable"
+  #  key: "psp"
