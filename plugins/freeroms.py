@@ -3,6 +3,7 @@ import re
 import string
 import requests
 import urllib3
+import shutil
 from plugin import Module
 
 NAME = "freeroms"
@@ -13,8 +14,10 @@ class Plugin(Module):
     name = NAME
     version = VERSION
 
+    def __init__(self, parent):
+        Module.__init__(self, parent)
+
     def main(self):
-        Module.__init__(self)
 
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -28,7 +31,7 @@ class Plugin(Module):
         for platform in platforms:
             roms = self.get_roms(platform['link'])
             for rom in roms:
-                self._download_rom(platform['directory'], rom, self.get_rom)
+                self.get_rom(rom[0], rom[1], platform['directory'])
 
     def get_cookies(self):
         url = self.gen_stage_url('cookies')
@@ -93,8 +96,8 @@ class Plugin(Module):
         print("done")
         return roms
 
-    def get_rom(self, f, rom, out):
-        url = "%s%s" % (self.gen_stage_url('download'), f)
+    def get_rom(self, rom_url, rom_name, out_dir):
+        url = "%s%s" % (self.gen_stage_url('download'), rom_url)
         headers = {'User-Agent': USER_AGENT}
 
         res = requests.get(url, headers=headers, cookies=self.cookies)
@@ -102,24 +105,14 @@ class Plugin(Module):
             self.cookies = res.cookies
             match = re.findall(r'Chrome.*?clickAndDisable.*?href="(.*?)"', res.text, re.DOTALL|re.MULTILINE)
             if match:
-                print("%s:\t" % (rom,), end=''),
                 headers['Referer'] = self.gen_stage_referer('download')
-                res = requests.get(match[0], headers=headers, cookies=self.cookies, verify=False)
+                result = self._download_rom(match[0], rom_name, out_dir, headers = headers, cookies = self.cookies)
+                if result is True:
+                    print("%s:\t success" % (rom_name,)),
+                    return True
+                elif result is False:
+                    print("%s:\t failure" % (rom_name,)),
 
-                if res.status_code == 200:
-                    extension = match[0].split('.')[-1:][0]
-                    try:
-                        out_path = os.path.abspath("%s/%s.%s" % (out, rom.replace('/', '_'), extension))
-                        with open(out_path, 'wb') as fd:
-                            for chunk in res.iter_content(4096):
-                                fd.write(chunk)
-                        print("success.")
-                        return True
-                    except:
-                        print("failed.")
-                        pass
-                else:
-                    print("failed.")
         return False
 
     def gen_stage_url(self, stage):
