@@ -105,10 +105,13 @@ class Plugin(Module):
             self.cookies = res.cookies
             match = re.findall(r'Chrome.*?clickAndDisable.*?href="(.*?)"', res.text, re.DOTALL|re.MULTILINE)
             if match:
+                extension = match[0].split('.')[-1:][0]
+                rom_name = "%s.%s" % (rom_name, extension)
                 headers['Referer'] = self.gen_stage_referer('download')
+
                 result = self._download_rom(match[0], rom_name, out_dir, headers = headers, cookies = self.cookies)
-                if result is True:
-                    print("%s:\t success" % (rom_name,)),
+                if result is not None and result:
+                    print("%s:\t success" % (result,)),
                     return True
                 elif result is False:
                     print("%s:\t failure" % (rom_name,)),

@@ -1,4 +1,5 @@
 import os
+import re
 import yaml
 import importlib
 import pathlib
@@ -27,15 +28,27 @@ class Module:
         with open(self._config_file, 'r') as fd:
             self._config = yaml.safe_load(fd)
 
-    def _download_rom(self, rom_url, rom_name, out_dir, headers = None, cookies = None):
+    def _download_rom(self, rom_url, rom_name, out_dir, headers = None, cookies = None, method = "GET"):
+        extension = False
         row = self._db.query(r'SELECT id FROM hash WHERE url = ?', rom_url).fetchall()
         if len(row) == 0:
             with tempfile.TemporaryFile() as temp_fd:
-                res = requests.get(rom_url, headers=headers, cookies=cookies, verify=False)
+                if method == "GET":
+                    res = requests.get(rom_url, headers=headers, cookies=cookies, verify=False)
+                elif method == "POST":
+                    res = requests.post(rom_url, headers=headers, cookies=cookies, verify=False)
 
                 if res.status_code == 200:
+                    if rom_name is None or rom_name is False:
+                        rom_name = re.findall(r'filename="(.+)"', res.headers['content-disposition'])
+                        if rom_name:
+                            extension = rom_name[0].split('.')[-1:][0]
+                            rom_name = ".".join(rom_name[0].split('.')[0:-1])
+                        else:
+                            return False
+
                     self._hash_rom_init()
-                    extension = rom_name.split('.')[-1:][0]
+
                     for chunk in res.iter_content(4096):
                         temp_fd.write(chunk)
                         self._hash_rom_update(chunk)
@@ -47,8 +60,12 @@ class Module:
                     # the md5 hash we just generated, we go ahead and store it in 
                     # the database and at the final destination.
                     if len(row) == 0:
-                        out_path = os.path.abspath("%s/%s.%s" % (out_dir, rom_name.replace('/', '_'), extension))
-                        complete_rom_name = "%s.%s" % (rom_name.replace('/', '_'), extension,)
+                        if extension:
+                            out_path = os.path.abspath("%s/%s.%s" % (out_dir, rom_name.replace('/', '_'), extension))
+                            complete_rom_name = "%s.%s" % (rom_name.replace('/', '_'), extension,)
+                        else:
+                            out_path = os.path.abspath("%s/%s" % (out_dir, rom_name.replace('/', '_'),))
+                            complete_rom_name = rom_name.replace('/', '_')
 
                         with open(out_path, 'wb') as fd:
                             temp_fd.seek(0)
@@ -60,7 +77,7 @@ class Module:
                             self._db.commit()
 
                         temp_fd.close()
-                        return True
+                        return out_path.split(os.path.sep)[-1:][0]
                     temp_fd.close()
                     return None
                 temp_fd.close()

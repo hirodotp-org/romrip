@@ -6,7 +6,7 @@ import yaml
 from database import Database, sql_create_hash_table, sql_create_cache_table
 from plugin import Plugin
 
-PLUGINS = ["freeroms"]
+PLUGINS = ["freeroms", "coolrom"]
 
 class Application:
     ROM_STATE_SKIP = 1

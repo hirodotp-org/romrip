@@ -1,0 +1,23 @@
+site: "coolrom.com.au"
+proto: "https"
+directory: "/home/benjamin/roms"
+
+stages:
+  cookies:
+    url: "/"
+  platforms:
+    url: "/roms/"
+  roms:
+    url: "/"
+  download:
+    url: "/"
+  download_popup:
+    url: "/dlpop.php?id="
+
+platforms:
+  - name: "Atari 2600"
+  #- name: "Atari Lynx"
+  #  directory: "/home/benjamin/roms/Atari Lynx"
+  #- name: "Playstation Portable"
+  #  directory: "/home/benjamin/roms/Sony Playstation Portable"
+  #  key: "psp"
