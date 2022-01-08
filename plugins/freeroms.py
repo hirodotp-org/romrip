@@ -31,7 +31,7 @@ class Plugin(Module):
         for platform in platforms:
             roms = self.get_roms(platform['link'])
             for rom in roms:
-                self.get_rom(rom[0], rom[1], platform['directory'])
+                self.get_rom(rom[0], rom[1], platform['directory'], platform['platform'])
 
     def get_cookies(self):
         url = self.gen_stage_url('cookies')
@@ -96,7 +96,7 @@ class Plugin(Module):
         print("done")
         return roms
 
-    def get_rom(self, rom_url, rom_name, out_dir):
+    def get_rom(self, rom_url, rom_name, out_dir, platform):
         url = "%s%s" % (self.gen_stage_url('download'), rom_url)
         headers = {'User-Agent': USER_AGENT}
 
@@ -109,7 +109,7 @@ class Plugin(Module):
                 rom_name = "%s.%s" % (rom_name, extension)
                 headers['Referer'] = self.gen_stage_referer('download')
 
-                result = self._download_rom(match[0], rom_name, out_dir, headers = headers, cookies = self.cookies)
+                result = self._download_rom(platform, match[0], rom_name, out_dir, headers = headers, cookies = self.cookies)
                 if result is not None and result:
                     print("%s:\t success" % (result,)),
                     return True

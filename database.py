@@ -13,6 +13,11 @@ sql_create_cache_table = """ CREATE TABLE IF NOT EXISTS cache (
                                 status integer DEFAULT 0 NOT NULL
                             ); """
 
+sql_create_local_table = """ CREATE TABLE IF NOT EXISTS local (
+                                id integer PRIMARY KEY,
+                                path text NOT NULL,
+                                hash text NOT NULL
+                            ); """
 class Database:
     def __init__(self, db):
         self.conn = self.create_connection(db)

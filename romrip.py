@@ -3,7 +3,7 @@ import sys
 import pathlib
 import yaml
 
-from database import Database, sql_create_hash_table, sql_create_cache_table
+from database import Database, sql_create_hash_table, sql_create_cache_table, sql_create_local_table
 from plugin import Plugin
 
 PLUGINS = ["freeroms", "coolrom"]
@@ -22,14 +22,14 @@ class Application:
                 self.config = yaml.safe_load(fd)
             self.db = Database(self.config["database"])
 
+        self.bootstrap()
+
         if plugins != []:
             self._plugins = [Plugin(self, plugin) for plugin in plugins]
         else:
             self._plugins = [Plugin(self, "default")]
 
     def main(self):
-        self.bootstrap()
-
         for plugin in self._plugins:
             print("LOADED %s %s" % (plugin.name, plugin.version,))
             plugin.stub.main()
@@ -37,6 +37,7 @@ class Application:
     def bootstrap(self):
         self.db.create_table(sql_create_hash_table)
         self.db.create_table(sql_create_cache_table)
+        self.db.create_table(sql_create_local_table)
 
 if __name__ == "__main__":
     app = Application(PLUGINS)
